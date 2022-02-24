@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 import pprint as pp
+import os
 
 
 @dataclass
@@ -9,15 +10,16 @@ class Contributor():
     name: str
     num_skills: int
     skills_possessed: Dict[str, int]
+    occupied: bool = False
 
 
-@dataclass
+@dataclass(order=True)
 class Project():
 
-    name: str
-    num_days: int
-    score_for_completion: int
     best_before: int
+    num_days: int
+    name: str
+    score_for_completion: int
     num_roles: int
     roles: Dict[str, int]
 
@@ -103,6 +105,32 @@ class Parser():
         return contributors, projects
 
 
+@dataclass
+class ProjectHandler():
+
+    projects_to_contributors: Dict[Project, List[Contributor]]
+    current_day: int = 0
+
+    def __init__(self, contributors: List[Contributor], projects: List[Project]):
+        self.contributors = contributors
+        self.projects = projects
+
+    def _assign_contributor(self, contributor: Contributor):
+        contributor.occupied = True
+        ...
+
+    def assign_contributors(self, project: Project, contributors: List[Contributor]):
+        for contributor in contributors:
+            self._assign_contributor(contributor)
+        self.projects_to_contributors = {project: contributors}
+
+    def score_project(self):
+        ...
+
+    def finish_project(self):
+        ...
+
+
 def main():
 
     file_name = 'a_an_example.in.txt'
@@ -110,6 +138,15 @@ def main():
     parser = Parser(file_name)
 
     contributors, projects = parser.read_all()
+
+    schedule_handler = ProjectHandler(contributors, projects)
+
+    pp.pprint(contributors)
+    pp.pprint(projects)
+
+    pp.pprint(projects)
+
+    # print(os.listdir())
 
 
 if __name__ == '__main__':
