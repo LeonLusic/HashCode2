@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 import pprint as pp
-import os
 
 
 @dataclass
 class Contributor():
-    
+
     name: str
     num_skills: int
     skills_possessed: Dict[str, int]
@@ -22,6 +21,7 @@ class Project():
     score_for_completion: int
     num_roles: int
     roles: Dict[str, int]
+    roles_fulfilled: Dict[str, bool]
 
 
 @dataclass
@@ -109,26 +109,46 @@ class Parser():
 class ProjectHandler():
 
     projects_to_contributors: Dict[Project, List[Contributor]]
+    project_duration: Dict[Project, int]
+    project_schedule: List[str]
     current_day: int = 0
 
     def __init__(self, contributors: List[Contributor], projects: List[Project]):
         self.contributors = contributors
         self.projects = projects
+        self.project_schedule = []
 
-    def _assign_contributor(self, contributor: Contributor):
+    def contributor_names(self, project):
+        return [contributor.name for contributor in self.projects_to_contributors[project]]
+
+    def _assign_contributor(self, project: Project, contributor: Contributor):
         contributor.occupied = True
-        ...
+        self.projects_to_contributors[project].append(contributor)
 
     def assign_contributors(self, project: Project, contributors: List[Contributor]):
+        self.projects_to_contributors[project] = []
         for contributor in contributors:
-            self._assign_contributor(contributor)
-        self.projects_to_contributors = {project: contributors}
+            if contributor.occupied:
+                continue
+            contributor.occupied = True
+            self.projects_to_contributors[project].append(contributor)
+
+    def start_project(self, project: Project, contributors: List[Contributor]):
+        self.assign_contributors(project, contributors)
+        self.project_duration[project] = 0
+        self.project_schedule.append(project.name)
+        self.project_schedule.append(' '.join(self.contributor_names(project)))
 
     def score_project(self):
         ...
 
-    def finish_project(self):
+    def assign_all(self):
         ...
+
+    def finish_project(self, project):
+        for contributor in self.projects_to_contributors[project]:
+            contributor.occupied = False
+        del self.projects_to_contributors[project]
 
 
 def main():
@@ -145,8 +165,6 @@ def main():
     pp.pprint(projects)
 
     pp.pprint(projects)
-
-    # print(os.listdir())
 
 
 if __name__ == '__main__':
