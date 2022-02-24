@@ -1,13 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
-from enum import Enum, auto
 import pprint as pp
-
-
-class ProjectStatus(Enum):
-    NOT_STARTED = auto()
-    STARTED = auto()
-    FINISHED = auto()
 
 
 @dataclass
@@ -28,8 +21,7 @@ class Project():
     score_for_completion: int
     num_roles: int
     roles: Dict[str, int]
-    roles_fulfilled: Dict[str, bool]
-    status: ProjectStatus = ProjectStatus.NOT_STARTED
+    # roles_fulfilled: Dict[str, bool]
 
 
 @dataclass
@@ -129,18 +121,16 @@ class ProjectHandler():
     def contributor_names(self, project):
         return [contributor.name for contributor in self.projects_to_contributors[project]]
 
+    def _assign_contributor(self, project: Project, contributor: Contributor):
+        contributor.occupied = True
+        self.projects_to_contributors[project].append(contributor)
+
     def assign_contributors(self, project: Project, contributors: List[Contributor]):
         self.projects_to_contributors[project] = []
         for contributor in contributors:
             if contributor.occupied:
                 continue
-            for role, level in contributor.skills_possessed.items():
-                if role not in project.roles:
-                    continue
-                if level < project.roles[role]:
-                    continue
             contributor.occupied = True
-            project.roles_fulfilled[role] = contributor
             self.projects_to_contributors[project].append(contributor)
 
     def start_project(self, project: Project, contributors: List[Contributor]):
@@ -148,7 +138,6 @@ class ProjectHandler():
         self.project_duration[project] = 0
         self.project_schedule.append(project.name)
         self.project_schedule.append(' '.join(self.contributor_names(project)))
-        project.status = ProjectStatus.STARTED
 
     def score_project(self):
         ...
@@ -160,7 +149,6 @@ class ProjectHandler():
         for contributor in self.projects_to_contributors[project]:
             contributor.occupied = False
         del self.projects_to_contributors[project]
-        project.status = ProjectStatus.FINISHED
 
 
 def main():
@@ -177,6 +165,24 @@ def main():
     pp.pprint(projects)
 
     pp.pprint(projects)
+
+    best_befores = []
+    for i in range(0,len(projects)):
+        best_befores.append(projects[i].best_before)
+
+    sorted_best = sorted(best_befores)
+
+    for i in range(0,len(projects)):
+        if sorted_best[1] == projects[i].best_before:
+            best = projects[i]
+
+    print(best.roles)
+    #print(contributors.skills)
+
+
+        # # print(contributors[i].skills_possessed)
+        # if contributors[i].skills_possessed in best.roles:
+        #     print(contributors[i])
 
 
 if __name__ == '__main__':
